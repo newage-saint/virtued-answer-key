@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VirtuED Quiz Answer Key</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
+<style>
+/* An answer-key ledger for the VirtuED doctor panel: sign in, then one question per row — the lesson screen on the
+   left, the question with the panel's tallies on the right. */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --ink:#1b2333; --muted:#5d6779; --line:#dde1e8;
+  --accent:#1f4fa8; --on-accent:#ffffff; --mark:#ffe58a; --mark-ink:#5a4600;
+  --ok:#1d7a4b; --ok-soft:#e3f3ea; --warn:#a15c00; --warn-soft:#fbefdc; --err:#b42318; --err-soft:#fdecea;
+  --scrim:rgba(10,14,20,.72);
+  --display:"Source Serif 4", Georgia, serif; --body:"IBM Plex Sans", system-ui, sans-serif; --mono:"IBM Plex Mono", ui-monospace, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#12161e; --surface:#1a202b; --ink:#e6e9ef; --muted:#9aa3b2; --line:#2c3442;
+  --accent:#8fb1ff; --on-accent:#0d1420; --mark:#5b4a12; --mark-ink:#ffe9a8;
+  --ok:#6fd3a0; --ok-soft:#163327; --warn:#f2b45d; --warn-soft:#3a2a12; --err:#ff9b8f; --err-soft:#3a1b18; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+[hidden]{display:none!important}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:28px 64px}
+header h1{font:600 clamp(24px,4vw,32px)/1.15 var(--display);margin:0 0 6px;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:68ch}
+.signin{margin-top:24px;max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.signin h2{font:600 18px var(--display);margin:0}
+.signin label{display:flex;flex-direction:column;gap:4px;font:500 13px var(--body);color:var(--muted)}
+.signin input{font:15px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px}
+.btn{font:600 14px var(--body);border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);border-radius:8px;padding:9px 14px;cursor:pointer}
+.btn.quiet{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.6;cursor:default}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin:18px -16px 0;padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+.chip{font:500 13px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.chip:focus-visible,.btn:focus-visible,.opt:focus-within,textarea:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.progress{margin-left:auto;font:500 13px var(--body);color:var(--muted);font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.progress select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:3px 6px}
+.notice{margin-top:14px;padding:10px 14px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-size:14px}
+.notice.err{background:var(--err-soft);color:var(--err)}
+.list{display:flex;flex-direction:column;gap:18px;margin-top:20px}
+.q{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:20px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+@media (max-width:720px){.q{grid-template-columns:minmax(0,1fr)}}
+.shot{display:block;width:100%;border-radius:6px;border:1px solid var(--line);background:var(--bg);cursor:zoom-in}
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;font:12px var(--mono);color:var(--muted);margin-bottom:8px}
+.meta b{font:600 12px var(--body);color:var(--accent);letter-spacing:.04em;text-transform:uppercase}
+.prompt{font:600 18px/1.4 var(--display);margin:0 0 12px;text-wrap:pretty}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.opt input{accent-color:var(--accent);width:18px;height:18px;margin:0}
+.opt .letter{font:600 13px var(--mono);color:var(--muted);min-width:1.2em}
+.opt.mine{background:var(--mark);border-color:var(--mark);color:var(--mark-ink)}
+.opt.mine .letter,.opt.mine .tally{color:var(--mark-ink)}
+.opt.flag .txt{color:var(--muted);font-style:italic}
+.opt.mine.flag .txt{color:var(--mark-ink)}
+.opt .txt{min-width:0}
+.tally{font:500 12px var(--body);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.foot{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-start;margin-top:12px}
+.pill{font:600 12px var(--body);border-radius:999px;padding:3px 10px;letter-spacing:.02em}
+.pill.none{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.pill.agree{background:var(--ok-soft);color:var(--ok)}
+.pill.split{background:var(--warn-soft);color:var(--warn)}
+.who{font-size:13px;color:var(--muted);margin:6px 0 0}
+details{flex:1 1 260px;min-width:0}
+summary{cursor:pointer;color:var(--accent);font-size:13px}
+textarea{width:100%;margin-top:8px;font:14px/1.45 var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;min-height:64px;resize:vertical}
+.empty{color:var(--muted);padding:24px 0}
+.status{font-size:12px;color:var(--muted)}
+dialog{border:none;padding:0;background:transparent;max-width:min(96vw,900px)}
+dialog::backdrop{background:var(--scrim)}
+dialog img{width:100%;border-radius:8px}
+@media (prefers-reduced-motion:no-preference){.opt{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>VirtuED Quiz Answer Key</h1>
+  <p>These quiz questions from the doctor-vetted lessons appear in Figma only before they are answered. Pick the correct option for each one. Your answer saves as you click, and every doctor on the panel sees the tally. Use the note if a question or its options need a fix.</p>
+</header>
+
+<form class="signin" id="signin" hidden>
+  <h2>Sign in with your VirtuED account</h2>
+  <label for="username">Email<input id="username" name="username" type="email" autocomplete="username" required></label>
+  <label for="password">Password<input id="password" name="password" type="password" autocomplete="current-password" required></label>
+  <button class="btn" id="signin-btn" type="submit">Sign in</button>
+  <div class="notice err" id="signin-error" hidden></div>
+</form>
+
+<section id="panel" hidden>
+  <div class="bar">
+    <div class="chips" id="lessons" role="group" aria-label="Lesson"></div>
+    <div class="progress"><span id="mine"></span>
+      <label for="show">Show</label><select id="show"><option value="all">all questions</option><option value="todo">ones I haven't answered</option><option value="split">ones the panel disagrees on</option></select>
+      <button class="btn quiet" id="signout" type="button">Sign out</button></div>
+  </div>
+  <div id="notice" class="notice" hidden></div>
+  <div class="list" id="list"><p class="empty">Loading the questions…</p></div>
+</section>
+</div>
+<dialog id="zoom"><img id="zoomimg" alt=""></dialog>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const LETTERS = "ABCDEFGH";
+const store = {
+  get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch { } },
+};
+function deviceId() {
+  try {
+    let id = localStorage.getItem("vx.answerKey.deviceId");
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem("vx.answerKey.deviceId", id); }
+    return id;
+  } catch { return crypto.randomUUID(); }
+}
+const state = { cfg: null, questions: [], votes: [], me: "", lesson: "all", show: "all", busy: new Set() };
+
+class ApiError extends Error {
+  constructor(status, code, reason, message, detail) { super(message || code); this.status = status; this.code = code; this.reason = reason; this.detail = detail; }
+}
+function reasonOf(body) {
+  for (const d of (body && body.details) || []) {
+    if (d.debug && d.debug.reason) return { reason: d.debug.reason, meta: d.debug.metadata || d.debug.details || {} };
+  }
+  return { reason: (body && body.message) || "", meta: {} };
+}
+async function call(path, body, auth = true) {
+  const headers = { "Content-Type": "application/json", "Connect-Protocol-Version": "1" };
+  if (auth) headers.Authorization = "Bearer " + store.get("vx.access");
+  let res;
+  try { res = await fetch(state.cfg.apiBase + path, { method: "POST", headers, body: JSON.stringify(body) }); }
+  catch { throw new ApiError(0, "unavailable", "", "The VirtuED server can't be reached. Check your connection and try again."); }
+  const text = await res.text();
+  let json = {}; try { json = text ? JSON.parse(text) : {}; } catch { }
+  if (!res.ok) { const r = reasonOf(json); throw new ApiError(res.status, json.code || "unknown", r.reason, json.message, r.meta); }
+  return json;
+}
+async function authed(path, body) {
+  try { return await call(path, body); }
+  catch (e) {
+    if (e.code !== "unauthenticated" || !store.get("vx.refresh")) throw e;
+    const r = await call("virtued.identity.services.v1.IdentityService/Refresh", { refreshCredential: store.get("vx.refresh"), deviceId: deviceId() }, false);
+    store.set("vx.access", r.accessCredential); if (r.refreshCredential) store.set("vx.refresh", r.refreshCredential);
+    return call(path, body);
+  }
+}
+
+async function signIn(ev) {
+  ev.preventDefault();
+  const btn = $("signin-btn"), err = $("signin-error"); btn.disabled = true; err.hidden = true;
+  const c = state.cfg;
+  try {
+    const r = await call("virtued.identity.services.v1.IdentityService/SignInWithPassword", {
+      username: $("username").value.trim(), password: $("password").value, clientPlatform: c.clientPlatform,
+      deviceId: deviceId(), deviceLabel: c.deviceLabel, appVersion: c.appVersion, timeZone: c.timeZone, locale: c.locale, market: c.market,
+    }, false);
+    store.set("vx.access", r.accessCredential); store.set("vx.refresh", r.refreshCredential || null);
+    $("password").value = "";
+    await openPanel();
+  } catch (e) {
+    err.hidden = false;
+    err.textContent = /INVALID_CREDENTIALS/i.test(e.reason + " " + e.message) || e.status === 401
+      ? "That email and password don't match a VirtuED account."
+      : e.message || "Sign-in failed. Try again.";
+  } finally { btn.disabled = false; }
+}
+async function signOut() {
+  try { await call("virtued.identity.services.v1.IdentityService/SignOut", { operationId: crypto.randomUUID(), deviceId: deviceId(), accessCredential: store.get("vx.access") }); } catch { }
+  store.set("vx.access", null); store.set("vx.refresh", null);
+  $("panel").hidden = true; $("signin").hidden = false;
+}
+
+async function load() {
+  const r = await authed("virtued.content.services.v1.AnswerKeyService/ListAnswerKey", {});
+  state.questions = (r.questions || []).map(v => v.question);
+  state.votes = r.votes || [];
+  state.me = r.callerUserId || "";
+}
+async function openPanel() {
+  $("signin").hidden = true; $("panel").hidden = false;
+  try { await load(); lessonsChips(); render(); }
+  catch (e) {
+    if (e.code === "unauthenticated") { await signOut(); return; }
+    $("list").textContent = "";
+    note(/ENTITLEMENT/i.test(e.reason + " " + e.message) || e.code === "permission_denied"
+      ? "This account isn't on the answer-key panel yet. Ask the VirtuED owner to grant it the doctor reviewer role, then sign in again."
+      : e.message, true);
+  }
+}
+function note(text, isErr) { const n = $("notice"); n.hidden = !text; n.textContent = text || ""; n.classList.toggle("err", !!isErr); }
+
+const mineOf = qid => state.votes.find(v => v.questionId === qid && v.mine);
+const choiceOf = v => (v && typeof v.choice === "number") ? v.choice : 0;
+function tallies(qid) {
+  const t = {}, who = {};
+  for (const v of state.votes) if (v.questionId === qid) { const c = choiceOf(v); t[c] = (t[c] || 0) + 1; (who[c] ||= []).push(v.voterDisplayName || "A doctor"); }
+  return { t, who };
+}
+function status(qid) {
+  const { t } = tallies(qid);
+  const total = Object.values(t).reduce((a, b) => a + b, 0);
+  if (!total) return ["none", "No answers yet"];
+  if (t[-1]) return ["split", `${t[-1]} flagged a problem`];
+  if (Object.keys(t).length === 1) return ["agree", total === 1 ? "1 answer" : `${total} agree`];
+  return ["split", "Panel disagrees"];
+}
+function lessonsChips() {
+  const lessons = [...new Map(state.questions.map(q => [q.lessonKey, q.lessonTitle])).entries()];
+  const box = $("lessons"); box.textContent = "";
+  for (const [key, title] of [["all", "All lessons"], ...lessons]) {
+    const n = key === "all" ? state.questions.length : state.questions.filter(q => q.lessonKey === key).length;
+    const b = document.createElement("button"); b.className = "chip"; b.type = "button";
+    b.textContent = `${title} · ${n}`; b.setAttribute("aria-pressed", String(state.lesson === key));
+    b.onclick = () => { state.lesson = key; lessonsChips(); render(); };
+    box.append(b);
+  }
+}
+function render() {
+  const list = $("list"); list.textContent = "";
+  let shown = state.questions.filter(q => state.lesson === "all" || q.lessonKey === state.lesson);
+  if (state.show === "todo") shown = shown.filter(q => !mineOf(q.questionId));
+  if (state.show === "split") shown = shown.filter(q => status(q.questionId)[0] === "split");
+  if (!shown.length) { const p = document.createElement("p"); p.className = "empty"; p.textContent = "Nothing matches this filter."; list.append(p); }
+  for (const q of shown) list.append(card(q));
+  const done = state.questions.filter(q => mineOf(q.questionId)).length;
+  $("mine").textContent = `You've answered ${done} of ${state.questions.length}`;
+}
+function card(q) {
+  const qid = q.questionId, mine = mineOf(qid), myChoice = mine ? choiceOf(mine) : null;
+  const el = document.createElement("article"); el.className = "q"; el.id = qid;
+  const src = "img/" + String(q.figmaFrameId).replace(":", "-") + ".jpg";
+  const img = document.createElement("img"); img.className = "shot"; img.loading = "lazy"; img.src = src; img.alt = "Lesson screen: " + q.prompt;
+  img.onclick = () => { $("zoomimg").src = src; $("zoomimg").alt = img.alt; $("zoom").showModal(); };
+  const body = document.createElement("div"); body.style.minWidth = "0";
+  const meta = document.createElement("div"); meta.className = "meta";
+  const b = document.createElement("b"); b.textContent = q.lessonTitle;
+  const f = document.createElement("span"); f.textContent = `Step ${q.flowNumber} · Figma ${q.figmaFrameId}`;
+  meta.append(b, f);
+  const h = document.createElement("p"); h.className = "prompt"; h.textContent = q.prompt;
+  const opts = document.createElement("div"); opts.className = "opts"; opts.setAttribute("role", "radiogroup"); opts.setAttribute("aria-label", q.prompt);
+  const { t, who } = tallies(qid);
+  const choices = [...(q.options || []).map((o, i) => [i, o]), [-1, "None of these is correct, or the question needs a fix"]];
+  for (const [i, label] of choices) {
+    const row = document.createElement("label");
+    row.className = "opt" + (myChoice === i ? " mine" : "") + (i === -1 ? " flag" : "");
+    const r = document.createElement("input"); r.type = "radio"; r.name = "q-" + qid; r.id = `q-${qid}-${i}`;
+    r.checked = myChoice === i; r.disabled = state.busy.has(qid);
+    r.onchange = () => vote(qid, i, mine ? mine.note || "" : "");
+    const letter = document.createElement("span"); letter.className = "letter"; letter.textContent = i >= 0 && q.kind === "QUIZ_TYPE_MCQ" ? LETTERS[i] : "";
+    const s = document.createElement("span"); s.className = "txt"; s.textContent = label;
+    const c = document.createElement("span"); c.className = "tally";
+    const n = t[i] || 0; c.textContent = n ? `${n} doctor${n > 1 ? "s" : ""}` : "";
+    if (n) c.title = who[i].join(", ");
+    row.append(r, letter, s, c); opts.append(row);
+  }
+  const foot = document.createElement("div"); foot.className = "foot";
+  const [cls, txt] = status(qid); const pill = document.createElement("span"); pill.className = "pill " + cls; pill.textContent = txt;
+  foot.append(pill);
+  if (state.busy.has(qid)) { const s = document.createElement("span"); s.className = "status"; s.textContent = "Saving…"; foot.append(s); }
+  const notes = state.votes.filter(v => v.questionId === qid && v.note);
+  const det = document.createElement("details"); if (notes.length) det.open = true;
+  const sum = document.createElement("summary"); sum.textContent = notes.length ? `Notes (${notes.length})` : "Add a note";
+  det.append(sum);
+  for (const v of notes) { const p = document.createElement("p"); p.className = "who"; p.textContent = `${v.voterDisplayName || "A doctor"}: ${v.note}`; det.append(p); }
+  const ta = document.createElement("textarea"); ta.id = "note-" + qid; ta.maxLength = 1000;
+  ta.placeholder = mine ? "For example: option C should read 'factor VIII', or the correct answer is missing" : "Pick an answer first, then add a note";
+  ta.disabled = !mine; ta.value = (mine && mine.note) || "";
+  ta.onchange = () => { if (mine) vote(qid, myChoice, ta.value.trim()); };
+  det.append(ta); foot.append(det);
+  body.append(meta, h, opts, foot); el.append(img, body);
+  return el;
+}
+async function vote(qid, choice, noteText) {
+  const mine = mineOf(qid);
+  state.busy.add(qid); render();
+  const req = { operationId: crypto.randomUUID(), questionId: qid, choice, note: noteText, expectedHeadToken: mine ? mine.headToken || "" : "" };
+  try {
+    let saved;
+    try { saved = await authed("virtued.content.services.v1.AnswerKeyService/SubmitAnswerKeyVote", req); }
+    catch (e) {
+      if (e.code !== "aborted" && e.status !== 409) throw e;
+      await load(); // someone (you, in another tab) changed it: retry once on the fresh head
+      const cur = mineOf(qid);
+      saved = await authed("virtued.content.services.v1.AnswerKeyService/SubmitAnswerKeyVote", { ...req, operationId: crypto.randomUUID(), expectedHeadToken: cur ? cur.headToken || "" : "" });
+    }
+    state.votes = state.votes.filter(v => !(v.questionId === qid && v.mine)).concat([{ ...saved, mine: true }]);
+    note("");
+  } catch (e) {
+    note(`Your answer to "${(state.questions.find(q => q.questionId === qid) || {}).prompt || qid}" was not saved: ${e.message}`, true);
+  } finally {
+    state.busy.delete(qid);
+    try { await load(); } catch { }
+    render();
+  }
+}
+
+$("signin").addEventListener("submit", signIn);
+$("signout").onclick = signOut;
+$("show").onchange = e => { state.show = e.target.value; render(); };
+$("zoom").onclick = () => $("zoom").close();
+(async () => {
+  try { state.cfg = await (await fetch("config.json", { cache: "no-cache" })).json(); }
+  catch { document.querySelector(".wrap").append(Object.assign(document.createElement("p"), { className: "notice err", textContent: "The page's configuration didn't load. Reload the page." })); return; }
+  if (store.get("vx.access")) openPanel(); else $("signin").hidden = false;
+})();
+</script>
+</body>
+</html>

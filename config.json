@@ -1,0 +1,9 @@
+{
+  "apiBase": "https://virtucarebd.ai/api/",
+  "clientPlatform": "DEVICE_PLATFORM_WEB",
+  "deviceLabel": "Answer-key page",
+  "appVersion": "1.0.0",
+  "timeZone": "Asia/Dhaka",
+  "locale": "en-BD",
+  "market": "MARKET_BD"
+}
